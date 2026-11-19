@@ -1,5 +1,5 @@
 """
-Assignment 11 — Monitoring & Alerts starter (TODO).
+Assignment 11 — Monitoring counters and threshold alerts.
 
 Tracks block rate, rate-limit hits, judge fail rate.
 Fires alerts when thresholds are exceeded.
@@ -40,18 +40,43 @@ class MonitoringAlert:
     rate_limit_hits: int = 0
     judge_checks: int = 0
     judge_fails: int = 0
+    _active_metrics: set[str] = field(default_factory=set, init=False, repr=False)
 
     def check_metrics(self) -> list[Alert]:
-        """TODO: compute rates, append Alert objects when thresholds exceeded."""
-        raise NotImplementedError("Implement MonitoringAlert.check_metrics")
+        """Emit once per threshold crossing; retain past alerts for review."""
+        metrics = self.snapshot()
+        conditions = [
+            ("block_rate", self.block_rate_threshold,
+             bool(self.total_requests) and metrics["block_rate"] > self.block_rate_threshold),
+            ("rate_limit_hits", self.rate_limit_hit_threshold,
+             self.rate_limit_hits > 0 and self.rate_limit_hits >= self.rate_limit_hit_threshold),
+            ("judge_fail_rate", self.judge_fail_rate_threshold,
+             bool(self.judge_checks) and metrics["judge_fail_rate"] > self.judge_fail_rate_threshold),
+        ]
+        new_alerts = []
+        for name, threshold, exceeded in conditions:
+            if exceeded and name not in self._active_metrics:
+                alert = Alert(name, metrics[name], threshold, f"High {name}: {metrics[name]:.3f}")
+                self.alerts.append(alert)
+                new_alerts.append(alert)
+                self._active_metrics.add(name)
+            elif not exceeded:
+                self._active_metrics.discard(name)
+        return new_alerts
 
     def export_json(self, filepath: str | None = None):
-        """TODO: write metrics + alerts to JSON under repo-root ``outputs/`` by default.
+        """Write metrics + alerts to JSON under repo-root ``outputs/`` by default.
         Use ``filepath or default_metrics_path()`` so running from ``src/`` does not
         create ``src/outputs/``.
         """
-        _ = filepath or default_metrics_path()
-        raise NotImplementedError("Implement MonitoringAlert.export_json")
+        self.check_metrics()
+        path = Path(filepath or default_metrics_path())
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(
+            json.dumps(self.snapshot(), ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        return str(path)
 
     def snapshot(self) -> dict:
         block_rate = (

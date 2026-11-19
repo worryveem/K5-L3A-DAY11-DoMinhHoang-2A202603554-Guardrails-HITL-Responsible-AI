@@ -83,6 +83,9 @@ async def part3_assignment_suite():
 
 async def part4_attacks():
     """Checkpoint 4: attack Red, then Red Advance (bonus)."""
+    from core.config import require_red_api_key
+
+    require_red_api_key()
     print("\n" + "=" * 60)
     print("CHECKPOINT 4: Red + Red Advance")
     print("=" * 60)
@@ -134,10 +137,10 @@ async def part4_attacks():
 
 
 async def main(parts=None):
-    setup_api_key()
-
     if parts is None:
         parts = [2, 3, 4]  # Core: CP2 → CP3 → CP4
+
+    setup_api_key(require_blue=any(part in (2, 3) for part in parts))
 
     for part in parts:
         if part == 2:

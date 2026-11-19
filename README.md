@@ -1,5 +1,26 @@
 # Day 11 — Controlled Agent Security (2026)
 
+**Học viên:** Đỗ Minh Hoàng · **MSSV:** 2A202603554 · **Lớp:** K5-L3A
+
+### Chạy bài nộp (PowerShell, từ gốc repo)
+
+Tạo virtualenv và cài `requirements.txt` theo hướng dẫn bên dưới. Điền key thật
+trong `.env` local từ mẫu `.env.example`; CP2–3 dùng OpenRouter, CP4 dùng
+`RED_TEAM_PROVIDER=gemini` và `GOOGLE_API_KEY` (hoặc OpenAI tương ứng).
+
+```powershell
+.\.venv\Scripts\python.exe src/main.py --part 2
+.\.venv\Scripts\python.exe src/main.py --part 3
+.\.venv\Scripts\python.exe src/main.py --part 4
+.\.venv\Scripts\python.exe -m pytest tests/smoke tests/public -q
+.\.venv\Scripts\python.exe scripts/grade.py --submission-dir . --out outputs/grade_report.json
+```
+
+Kết quả thực nghiệm ở [`outputs/results.json`](outputs/results.json) và
+[`outputs/attack_results.json`](outputs/attack_results.json). Báo cáo tự sinh:
+[`outputs/lab_report.md`](outputs/lab_report.md). Điểm và bonus cuối cùng do
+grader replay và người chấm quyết định.
+
 > 👤 **Hình thức:** bài tập **cá nhân** (1 người / 1 MSSV).  
 > 🎯 **Mục tiêu:** đóng vai **Blue Team** để học cách xây Guardrails phòng thủ, rồi đóng vai **Red Team** để tấn công agent **Red** hoặc **Red Advance**.  
 > ✅ Làm theo **Checkpoint 1 → 5** trong [`CHECKPOINTS.md`](CHECKPOINTS.md) · nộp theo [`SUBMISSION.md`](SUBMISSION.md).

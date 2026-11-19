@@ -169,6 +169,18 @@ def get_openai_api_key() -> str:
     return os.environ.get("OPENAI_API_KEY", "").strip()
 
 
+def require_red_api_key() -> None:
+    """Reject missing/template Red credentials before producing attack evidence."""
+    name = "GOOGLE_API_KEY" if red_uses_gemini() else "OPENAI_API_KEY"
+    value = os.environ.get(name, "").strip()
+    if not value or "..." in value or value == "your-google-ai-studio-key-here":
+        raise RuntimeError(
+            f"Checkpoint 4 cần {name} thật cho Red/Red Advance. "
+            "Điền key trực tiếp trong .env; không gửi key vào chat. "
+            "OPENROUTER_API_KEY chỉ dùng cho Blue (CP2–CP3)."
+        )
+
+
 def red_openai_client_kwargs() -> dict:
     return {"api_key": get_openai_api_key() or None}
 
@@ -234,13 +246,14 @@ def is_harder_model() -> bool:
     return any(x in m for x in ("gpt-5.6", "pro", "gemini-3.8", "gemini-3.7"))
 
 
-def setup_api_key():
-    """Ensure keys for Blue (OpenRouter) + Red / Red Advance (OpenAI or Gemini)."""
-    if not get_openrouter_api_key():
-        os.environ["OPENROUTER_API_KEY"] = input(
-            "Enter OpenRouter API Key (Blue): "
-        ).strip()
-    print(f"Blue  — {blue_provider_label()}  [LOCKED]")
+def setup_api_key(*, require_blue: bool = True):
+    """Ensure Red credentials and, when running CP2–3, Blue credentials."""
+    if require_blue:
+        if not get_openrouter_api_key():
+            os.environ["OPENROUTER_API_KEY"] = input(
+                "Enter OpenRouter API Key (Blue): "
+            ).strip()
+        print(f"Blue  — {blue_provider_label()}  [LOCKED]")
 
     red = get_red_provider()
     model = get_red_model()
